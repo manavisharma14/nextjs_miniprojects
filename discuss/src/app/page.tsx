@@ -1,10 +1,16 @@
+import TopicCreateForm from "@/components/topics/TopicCreateForm";
 import { Button } from "@/components/ui/button";
 
-export default function Home() {
+export default async function Home() {
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <h1>hello discuss app</h1>
-      <Button>let's build discuss app</Button>
+    <div className="grid grid-cols-4 gap-4 p-4">
+      <div className="col-span-3">
+      <h1 className="text-xl font-bold m-2">Home Page</h1>
+      </div>
+      <div>
+        <TopicCreateForm />
+      </div>
     </div>
   );
 }
