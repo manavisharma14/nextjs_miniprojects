@@ -2,6 +2,10 @@
 import {z} from 'zod';
 import {auth} from "@/auth";
 import { prisma } from '@/lib';
+import { redirect } from 'next/navigation';
+import type { Post } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+
 
 const createPostSchema = z.object({
     title: z.string().min(1, 'Title is required'),
@@ -16,7 +20,7 @@ type CreatePostFormState = {
     }
 }
 
-export const createPost = async (prevState: CreatePostFormState, formData: FormData) : Promise<CreatePostFormState> => {
+export const createPost = async (slug: string, prevState: CreatePostFormState, formData: FormData) : Promise<CreatePostFormState> => {
 
     const result = createPostSchema.safeParse({
         title: formData.get('title'),
@@ -30,6 +34,13 @@ export const createPost = async (prevState: CreatePostFormState, formData: FormD
         }
 
     const session = await auth();
+    if(!session || !session.user || !session.user.id) {
+        return {
+            errors: {
+                formError: ['You must be logged in to create a post.'],
+            },
+        };
+    }
 
     const topic = await prisma.topic.findFirst({
         where: {
@@ -37,13 +48,15 @@ export const createPost = async (prevState: CreatePostFormState, formData: FormD
         }
     })
 
+    let post : Post;
+
     try {
-        await prisma.post.create({
+        post = await prisma.post.create({
             data: {
                 title: result.data.title,
                 content: result.data.content,
                 userId: session?.user?.id || '',
-                // topicId: 
+                topicId: topic?.id || '',
             }
         })
     } catch (error: unknown) {
@@ -63,13 +76,8 @@ export const createPost = async (prevState: CreatePostFormState, formData: FormD
         }
     }
 
-    if(!session?.user) {
-        return {
-            errors: {
-                formError: ['You must be logged in to create a post.'],
-            },
-        };
-    }
+    revalidatePath(`/topics/${slug}}`);
+    redirect(`/topics/${slug}/posts/${post.id}`);
 
 
 }

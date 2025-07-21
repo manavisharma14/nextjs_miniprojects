@@ -1,8 +1,13 @@
-export default function PostShowPage() {
+import PostShow from "@/components/post/post-show";
+type PostShowPageProps = {
+    params: Promise<{slug: string; postId: string}>;
+}
+export default async function PostShowPage({params}: PostShowPageProps) {
+    const {slug, postId} = (await params);
     return (
         <div>
-            <h1>Post Show Page</h1>
-            <p>This is the post show page for a specific post.</p>
+            <PostShow postId= {postId}/>
+
         </div>
     );
 }
